@@ -1,5 +1,6 @@
-# Gentoo Install
-## My setup for a clean Gentoo install on MY machine.
+## Gentoo Install
+My setup for a clean Gentoo install on MY machine.
+
 
 ### Preparing the disks.
 Formatting & mounting the partitons.
