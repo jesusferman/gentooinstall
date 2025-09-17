@@ -199,3 +199,14 @@ su jesus
 ```
 doas emerge app-misc/fastfetch
 ```
+
+Exiting and rebooting.
+```
+exit
+```
+```
+cd && umount -l /mnt/gentoo/dev{/shm,/pts,} && umount -R /mnr/gentoo
+```
+```
+reboot
+```
