@@ -1,0 +1,7 @@
+# /etc/fstab: static file system information.
+#
+# NOTE: The root filesystem should have a pass number of either 0 or 1.
+#       All other filesystems should have a pass number of 0 or greater than 1.
+
+UUID="3B92-7B5A"				/boot/efi vfat	umask=0077,tz=UTC	0 2
+UUID="ce77639c-5e02-420a-8f5b-612d62d02668"	/	  xfs	rw,noatime		0 1
