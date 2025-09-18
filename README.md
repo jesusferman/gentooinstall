@@ -145,7 +145,7 @@ nano /etc/fstab
 
 Enabling udev and services.
 ```
-emerge -q sys-fs/dpsfstools sys-fs/xfsprogs sys-block/io-scheduler-udev-rules
+emerge -q sys-fs/dosfstools sys-fs/xfsprogs sys-block/io-scheduler-udev-rules
 ```
 ```
 emerge -q net-misc/chrony app-admin/sysklogd net-wireless/iwd
