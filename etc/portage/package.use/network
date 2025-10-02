@@ -1,0 +1,2 @@
+net-wireless/iwd standalone
+net-misc/networkmanager -qtk-doc -modemmanager -ppp -wext bluetooth iwd

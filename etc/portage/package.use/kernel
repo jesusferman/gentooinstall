@@ -1,0 +1,4 @@
+sys-kernel/gentoo-sources experimental
+sys-kernel/installkernel dracut
+sys-kernel/linux-firmware compress-zstd savedconfig
+
