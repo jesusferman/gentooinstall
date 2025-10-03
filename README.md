@@ -1,5 +1,20 @@
 # Gentoo Install.
 
+## Preparing the livemedia.
+Cloning dnf, etc and kernel configs.
+```
+git clone https://github.com/jesusferman/gentooinstall.git
+```
+Installing codecs.
+```
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && sudo dnf config-manager setopt fedora-cisco-openh264.enabled=1 && sudo dnf install libavcodec-freeworld
+```
+Installing a browser.
+```
+sudo dnf config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo && sudo dnf install mullvad-browser && sudo dnf remove firefox
+```
+
+
 ## Preparing the disks.
 Formating and mounting the /mnt.
 ```
@@ -22,10 +37,7 @@ Getting and extracting the tarball.
 ```
 cd /mnt/gentoo && wget https://distfiles.gentoo.org/releases/amd64/autobuilds/20250928T160345Z/stage3-amd64-openrc-20250928T160345Z.tar.xz && tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo && rm stage3-*
 ```
-Cloning portage, kernel and DNS resolver.
-```
-git clone https://github.com/jesusferman/gentooinstall.git
-```
+Setting portage and etc confs.
 ```
 cp -L /gentooinstall/etc/ /mnt/gentoo/etc/
 ```
