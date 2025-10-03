@@ -3,7 +3,7 @@
 ## Preparing the livemedia.
 Cloning dnf, etc and kernel configs.
 ```
-git clone https://github.com/jesusferman/gentooinstall.git
+git clone https://github.com/jesusferman/gentooinstall.git && cp gentooinstall/dnf.conf /etc/dnf/
 ```
 Installing codecs.
 ```
