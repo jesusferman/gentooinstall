@@ -28,18 +28,24 @@ cryptsetup luksFormat --type luks2 /dev/nvme0n1p3
 cryptsetup luksOpen /dev/nvme0n1p3 root
 ```
 ```
-mkfs.ext4 /dev/mapper/gentoo && mount --mkdir /dev/mapper/gentoo /mnt/gentoo
+mkfs.ext4 /dev/mapper/root && mount --mkdir /dev/mapper/root /mnt/gentoo
 ```
 
 
 ## Stage 3 tarball.
 Getting and extracting the tarball.
 ```
-cd /mnt/gentoo && wget https://distfiles.gentoo.org/releases/amd64/autobuilds/20250928T160345Z/stage3-amd64-openrc-20250928T160345Z.tar.xz && tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo && rm stage3-*
+cd /mnt/gentoo && wget https://distfiles.gentoo.org/releases/amd64/autobuilds/20251221T154556Z/stage3-amd64-systemd-20251221T154556Z.tar.xz && tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo && rm stage3-*
 ```
 Setting portage and etc confs.
 ```
-cp -L /gentooinstall/etc/ /mnt/gentoo/etc/
+cp -L /etc/resolv.conf /mnt/gentoo/etc/
+```
+```
+nano /gentooinstall/etc/fstab
+```
+```
+cp /gentooinstall/etc/* /mnt/gentoo/etc
 ```
 
 
@@ -66,9 +72,6 @@ emerge-webrsync
 ```
 getuto
 ```
-```
-emerge -q --sync
-```
 Configuring locales.
 ```
 nano /etc/locale.gen
@@ -88,6 +91,9 @@ ln -sf /usr/share/zoneinfo/ /etc/localtime
 ```
 env-update && source /etc/profile
 ```
+```
+emerge --sync
+```
 Generating signing keys.
 ```
 mkdir -p /etc/keys && openssl req -new -noenc -utf8 -sha256 -x509 -outform PEM -out /etc/keys/kernel.pem -keyout /etc/keys/kernel.key
@@ -96,7 +102,7 @@ mkdir -p /etc/keys && openssl req -new -noenc -utf8 -sha256 -x509 -outform PEM -
 openssl x509 -in /etc/keys/kernel.pem -inform PEM -out /etc/keys/kernel.der -outform DER
 ```
 ```
-openssl req -new -noenc -utf8 -sha3-512 -x509 -outform PEM -out /etc/keys/modules.pem -keyout /etc/keys/modules.key
+openssl req -new -noenc -utf8 -sha3-512 -x509 -outform PEM -out /etc/keys/signing.key -keyout /etc/keys/signing.key
 ```
 ```
 chown root:root /etc/keys/* && chmod 700 /etc/keys && chmod 400 /etc/keys/*
@@ -106,19 +112,18 @@ chown root:root /etc/keys/* && chmod 700 /etc/keys && chmod 400 /etc/keys/*
 ## Configuring the kernel
 Installing firmware and dracut.
 ```
-emerge -qa sys-kernel/linux-firmware sys-kernel/installkernel
+emerge sys-kernel/linux-firmware sys-kernel/installkernel
 ```
 Kernel configuration and compilation.
 ```
 emerge sys-kernel/gentoo-sources
 ```
 ```
-cp gentooinstall/.config /usr/src/linux-6.12.41-gentoo/
-```
-```
 eselect kernel set 1 && env-update && source /etc/profile
 ```
-Set BT, ALSA, Virtio as modules.
+```
+cp gentooinstall/linux/.config /mnt/gentoo/usr/src/linux/
+```
 ```
 make menuconfig
 ```
@@ -126,7 +131,7 @@ make menuconfig
 make -j12 && make -j12 modules_install
 ```
 ```
-sbsign /usr/src/linux-6.12.41-gentoo/arch/x86/boot/bzImage --cert /etc/keys/kernel.pem --key /etc/keys/kernel.key --output /usr/src/linux-6.12.41-gentoo/arch/x86/boot/bzImage
+sbsign /usr/src/linux/arch/x86/boot/bzImage --cert /etc/keys/kernel.pem --key /etc/keys/kernel.key --output /usr/src/linux/arch/x86/boot/bzImage
 ```
 ```
 make install
@@ -136,7 +141,7 @@ https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Kernel#Manual_process
 
 
 ## Configuring the system
-Creating the fstab.
+Creating (or copying) the fstab.
 ```
 blkid
 ```
@@ -146,10 +151,10 @@ nano /etc/fstab
 
 Enabling udev and services.
 ```
-emerge -q sys-fs/dosfstools sys-fs/e2fsprogs sys-block/io-scheduler-udev-rules
+emerge sys-fs/dosfstools sys-fs/e2fsprogs sys-block/io-scheduler-udev-rules
 ```
 ```
-emerge -q net-misc/chrony app-admin/sysklogd net-wireless/iwd
+emerge net-wireless/iwd net-dns/openresolv net-misc/networkmanager
 ```
 ```
 rc-update add chronyd default
@@ -166,27 +171,27 @@ rc-update add sshd default
 
 Configuring GRUB.
 ```
-emerge -qa sys-boot/grub sys-boot/shim sys-boot/mokutil sys-boot/efibootmgr
+emerge sys-boot/grub sys-boot/shim sys-boot/mokutil sys-boot/efibootmgr
 ```
 ```
-cp /usr/share/shim/BOOTX64.EFI /boot/efi/EFI/Gentoo/shimx64.efi && cp /usr/share/shim/mmx64.efi /boot/efi/EFI/Gentoo/mmx64.efi && cp /usr/lib/grub/grub-x86_64.efi.signed /boot/efi/EFI/Gentoo/grubx64.efi
+cp /usr/share/shim/BOOTX64.EFI /boot/efi/EFI/Linux/shimx64.efi && cp /usr/share/shim/mmx64.efi /boot/efi/EFI/Linux/mmx64.efi && cp /usr/lib/grub/grub-x86_64.efi.signed /boot/efi/EFI/Linux/grubx64.efi
 ```
 ```
 mokutil --import /etc/keys/kernel.der
 ```
 ```
-efibootmgr --create --disk /dev/mapper/gentoo --part PARTUUID --loader '\EFI\Gentoo\shimx64.efi' --label 'GRUB via Shim' --unicode
+efibootmgr --create --disk /dev/mapper/root --part PARTUUID --loader '\EFI\Linux\shimx64.efi' --label 'GRUB via Shim' --unicode
 ```
 ```
-grub-mkconfig -o /boot/efi/EFI/Gentoo/grub.cfg
+grub-mkconfig -o /boot/efi/EFI/Linux/grub.cfg
 ```
 
 Creating an user.
 ```
-emerge -q app-shells/zsh app-shells/gentoo-zsh-completions
+emerge app-shells/zsh app-shells/gentoo-zsh-completions
 ```
 ```
-emerge -q app-admin/doas
+emerge app-admin/doas
 ```
 ```
 groupadd docker && useradd -mG users,wheel,docker,video,audio -s /bin/zsh jesus
